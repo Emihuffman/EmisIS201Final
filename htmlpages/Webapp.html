@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%; /* Increased width to 90% of the screen */
+            max-width: 800px; /* Max width of the container */
+            min-height: 70%; /* Make the container taller */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            align-items: center;
+            padding: 40px; /* Increased padding for more space */
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #333;
+            font-size: 36px; /* Increased font size for heading */
+            margin-bottom: 20px;
+        }
+        select {
+            padding: 12px;
+            margin: 20px 0;
+            font-size: 18px; /* Larger font size for category selection */
+            border-radius: 4px;
+            width: 100%; /* Full width for the select box */
+        }
+        .question {
+            font-size: 24px; /* Larger font size for the question */
+            margin-bottom: 30px;
+        }
+        .options {
+            margin-bottom: 30px;
+        }
+        .options button {
+            padding: 15px 30px; /* Larger padding for buttons */
+            font-size: 18px; /* Larger font size for buttons */
+            background-color: #528db8;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%; /* Make buttons full width */
+            margin-bottom: 20px; /* Increased space between options */
+        }
+        .options button:hover {
+            background-color: #185e91;
+        }
+        .feedback {
+            font-size: 20px; /* Larger font size for feedback */
+            margin-top: 20px;
+            color: #333;
+        }
+        #next-button {
+            font-size: 22px; /* Larger font size for Next Question button */
+            padding: 18px 35px; /* Increase padding for larger button */
+            background-color: #c3c3c3;
+        }
+        #next-button:hover {
+            background-color: #9c9c9c;
+        }
+        #start-button {
+            font-size: 24px; /* Larger font size for Start Game button */
+            padding: 20px 40px; /* Increase padding for larger button */
+            background-color: #78a879;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%; /* Make button full width */
+            margin-bottom: 20px; /* Space below the Start Game button */
+        }
+        #start-button:hover {
+            background-color: #3f7e40;
+        }
+        select {
+            padding: 16px;  /* Increase the padding to make the dropdown taller */
+            margin: 20px 0;
+            font-size: 18px; /* Larger font size for better readability */
+            border-radius: 4px;
+            width: 100%; /* Full width for the select box */
+        } 
+        .header {
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            margin-right: 30px;
+            margin-left: 30px !important;
+            margin-top: 0px;
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.5;
+            width: 100%;
+        }
+        .menutabs {
+            display: flex;
+            justify-content: flex-end;  /* Aligns the menu items to the right */
+            width: 99%;  /* Ensure it takes the full width of the parent */
+            margin: 0px; /* Optional, margin around the menu */
+}
+        .menutabs a {
+            text-decoration: none;
+            margin-right: 10px;
+            color: black;
+        }
+        a:hover {
+            color: rgb(226, 101, 47);
+        }
+        h1 {
+            font-size: 48px; /* Larger font size for the title */
+            text-align: center; /* Center the title */
+            color: #333; /* Set color for the title */
+            margin-bottom: 0px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="menutabs">
+            <a href="../Home.html">Home</a>
+            <a href="Portfolio.html">  Portfolio</a>
+            <a href="Resume.html">  Resume</a>
+            <a href="Tableau.html">   Tableau</a>
+            <a href="#">   Web App</a>
+        </span>
+    </div>
+    <div class="container">
+        <h1>AI Trivia Game</h1>
+        <select id="category-select">
+            <option value="9">General Knowledge</option>
+            <option value="18">Science: Computers</option>
+            <option value="22">Geography</option>
+            <option value="23">History</option>
+        </select>
+        <button id="start-button" onclick="startGame()">Start Game</button>
+        <div id="question-container" style="display:none;">
+            <div class="question" id="question-text"></div>
+            <div class="options" id="options-container"></div>
+            <button id="next-button" onclick="nextQuestion()">Next Question</button>
+            <div class="feedback" id="feedback"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestionIndex = 0;
+        let questions = [];
+        let userAnswer = '';
+
+        // Function to fetch trivia questions
+        async function fetchQuestions(categoryId) {
+            const url = `https://opentdb.com/api.php?amount=5&category=${categoryId}&type=multiple`;
+            const response = await fetch(url);
+            const data = await response.json();
+            questions = data.results;
+            displayQuestion();
+        }
+
+        // Function to display a question and options
+        function displayQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                alert('You have completed the quiz!');
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            document.getElementById('question-text').textContent = question.question;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const allOptions = [...question.incorrect_answers, question.correct_answer];
+            shuffleArray(allOptions);
+
+            allOptions.forEach(option => {
+                const optionButton = document.createElement('button');
+                optionButton.textContent = option;
+                optionButton.onclick = () => checkAnswer(option);
+                optionsContainer.appendChild(optionButton);
+            });
+        }
+
+        // Function to check if the selected answer is correct
+        function checkAnswer(answer) {
+            const question = questions[currentQuestionIndex];
+            userAnswer = answer;
+            const feedbackElement = document.getElementById('feedback');
+
+            if (userAnswer === question.correct_answer) {
+                feedbackElement.textContent = 'Correct!';
+                feedbackElement.style.color = 'green';
+            } else {
+                feedbackElement.textContent = `Incorrect! The correct answer is: ${question.correct_answer}`;
+                feedbackElement.style.color = 'red';
+            }
+        }
+
+        // Function to move to the next question
+        function nextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
+            document.getElementById('feedback').textContent = '';  // Clear feedback
+        }
+
+        // Function to start the game by selecting a category
+        function startGame() {
+            const categorySelect = document.getElementById('category-select');
+            const selectedCategory = categorySelect.value;
+            document.getElementById('question-container').style.display = 'block';
+            fetchQuestions(selectedCategory);
+        }
+
+        // Function to shuffle options randomly
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];  // Swap elements
+            }
+        }
+    </script>
+</body>
+</html>
